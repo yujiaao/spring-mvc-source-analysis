@@ -83,16 +83,16 @@ http://www.springframework.org/schema/tx http://www.springframework.org/schema/t
 
  </bean>
 
-<bean id="registrationValidator" class="registrationValidator"/>
-<bean id="registrationController" class="RegistrationFormController">
+<bean id="com.github.yujiaao.springformtags.registrationValidator" class="com.github.yujiaao.springformtags.registrationValidator"/>
+<bean id="registrationController" class="com.github.yujiaao.springformtags.RegistrationFormController">
 
 <property name="sessionForm"><value>false</value></property>
 
 <property name="commandName" value="registration"></property>
 
-<property name="commandClass" value="Registration"></property>
+<property name="commandClass" value="com.github.yujiaao.springformtags.Registration"></property>
 
-<property name="validator"><ref bean="registrationValidator"/></property>
+<property name="validator"><ref bean="com.github.yujiaao.springformtags.registrationValidator"/></property>
 <property name="formView"><value>index</value></property>
 
 <property name="successView"><value>success</value></property>
@@ -278,7 +278,7 @@ public class Registration {
 RegistrationFormController.java
 
 ```java
-import org.springframework.web.servlet.ModelAndView;
+
 import org.springframework.web.servlet.mvc.SimpleFormController;
 
 public class RegistrationFormController extends SimpleFormController {
@@ -318,8 +318,7 @@ public class RegistrationFormController extends SimpleFormController {
 registrationValidator.java
 
 ```java
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
+
 
 public class registrationValidator implements Validator
 {

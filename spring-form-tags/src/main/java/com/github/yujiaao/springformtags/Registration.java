@@ -1,9 +1,10 @@
+package com.github.yujiaao.springformtags;
+
 public class Registration {
 
     private String username;
     private String password;
     private String fname;
-    private String lname;
     private String gender;
     private String country;
     private String addr;
@@ -52,13 +53,6 @@ public class Registration {
         this.fname = fname;
     }
 
-    public String getLname() {
-        return lname;
-    }
-
-    public void setLname(String lname) {
-        this.lname = lname;
-    }
 
     public String getPassword() {
         return password;

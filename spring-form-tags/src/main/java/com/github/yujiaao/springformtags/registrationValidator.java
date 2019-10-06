@@ -1,6 +1,10 @@
+package com.github.yujiaao.springformtags;
+
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
+@Component
 public class registrationValidator implements Validator {
 
     public boolean supports(Class cl) {

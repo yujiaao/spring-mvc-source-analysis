@@ -2,13 +2,14 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.test</groupId>
-    <artifactId>sampleapp</artifactId>
+    <groupId>com.github.yujiaao</groupId>
+    <artifactId>spring-form-tags</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>sampleapp</name>
-    <description>sampleapp project for Spring Boot</description>
+    <name>spring-form-tags</name>
+    <description>Demo project for Spring Boot</description>
+
 
     <!-- Properties -->
     <properties>
@@ -87,18 +88,34 @@
             <version>${logback.version}</version>
             <scope>runtime</scope>
         </dependency>
-
-
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aop</artifactId>
-            <version>${spring-aop.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.modelmapper</groupId>
-            <artifactId>modelmapper</artifactId>
-            <version>${modelmapper-version}</version>
+            <groupId>jstl</groupId>
+            <artifactId>jstl</artifactId>
+            <version>1.2</version>
         </dependency>
+
+        <!--
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging-annotations</artifactId>
+            <version>2.2.0.Final</version>
+        </dependency>
+        -->
+
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-jasper</artifactId>
+            <version>9.0.26</version>
+        </dependency>
+
+
+
+
     </dependencies>
 
 
@@ -110,6 +127,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring.boot.version}</version>
                 <configuration>
                     <jvmArguments>-Xmx512m -XX:MaxDirectMemorySize=1200m</jvmArguments>
                 </configuration>
