@@ -1,0 +1,39 @@
+
+buildscript {
+
+    ext { springBootVersion = '2.1.8.RELEASE' }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+
+
+}
+
+plugins {
+    id 'org.springframework.boot' version '2.1.8.RELEASE'
+    id "io.spring.dependency-management" version '1.0.8.RELEASE'
+    id 'java'
+}
+
+
+archivesBaseName = 'reloading'
+version = '1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation  'jstl:jstl:1.2'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    //采用jsp模板的话，以下两项不可少
+    implementation 'org.springframework.boot:spring-boot-starter-tomcat'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
+
+}
