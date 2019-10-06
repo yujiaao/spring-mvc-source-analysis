@@ -1,0 +1,61 @@
+
+buildscript {
+
+    ext { springBootVersion = '2.1.8.RELEASE' }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+
+
+}
+
+plugins {
+    id 'org.springframework.boot' version '2.1.8.RELEASE'
+    id "io.spring.dependency-management" version '1.0.8.RELEASE'
+    id 'java'
+}
+
+//apply plugin: 'java'
+
+//apply plugin: 'spring-boot' //for old 1.x version
+
+archivesBaseName = 'controlleradvice'
+version = '1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+	implementation  'jstl:jstl:1.2'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    //采用jsp模板的话，以下两项不可少
+    implementation 'org.springframework.boot:spring-boot-starter-tomcat'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
+   // implementation "org.springframework.boot:spring-boot-devtools" //修改文件时不需要每次都要重启
+
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+
+    // for 1.x version spring-boot
+    // compile 'org.springframework.boot:spring-boot-starter-web'
+    // providedCompile 'org.springframework.boot:spring-boot-starter-tomcat'
+    //解释：
+    //
+    //在Android Gradle插件3.0之前：我们有一个大问题，即一个代码更改导致所有模块重新编译。造成这种情况的根本原因是Gradle不知道您是否通过另一个接口泄漏了模块的接口。
+    //
+    //在Android Gradle插件3.0之后：最新的Android Gradle插件现在需要您明确定义是否泄漏了模块的接口。基于此，它可以对应该重新编译的内容做出正确的选择。
+    //
+    //因此，compile已弃用该依赖关系，并用两个新的依赖关系代替：
+    //
+    //api：您通过自己的接口泄漏了此模块的接口，其含义与旧的compile依赖项完全相同
+    //
+    //implementation：您只能在内部使用此模块，不会通过界面泄漏它
+}
