@@ -1,9 +1,8 @@
 package com.github.yujiaao.reloading.config;
-  
+
 import com.github.yujiaao.reloading.filter.GlobalFilter;
 import com.github.yujiaao.reloading.listener.ContextListener;
 import com.github.yujiaao.reloading.listener.WebServerStartedListener;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -14,9 +13,7 @@ import org.springframework.web.servlet.view.JstlView;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
 
 import javax.servlet.Filter;
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebFilter;
 
 @Configuration 
 @ComponentScan("com.github.yujiaao.reloading")

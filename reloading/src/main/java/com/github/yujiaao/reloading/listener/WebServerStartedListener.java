@@ -1,6 +1,5 @@
 package com.github.yujiaao.reloading.listener;
 
-import com.github.yujiaao.reloading.Application;
 import org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
 
