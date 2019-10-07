@@ -20,7 +20,8 @@ public class MyWorldController {
 	private UserValidator userValidator;
 
 	@GetMapping({"signup",""})
-	public ModelAndView user(){
+	public ModelAndView signup(){
+		System.out.println("MyWorldController::signup");
 		return new ModelAndView("user","user",new User());
 	}
 
@@ -30,8 +31,11 @@ public class MyWorldController {
 	}
 
 	@PostMapping(value="save")
-	public String createUser(@ModelAttribute("user") @Valid User user,BindingResult result, ModelMap model) 
+	public String save(@ModelAttribute("user") @Valid User user,BindingResult result, ModelMap model)
 			                                                throws FileNotFoundException {
+
+		System.out.println("MyWorldController::save");
+
 	    if(result.hasErrors()) {
 	    	return "user";
 	    }
