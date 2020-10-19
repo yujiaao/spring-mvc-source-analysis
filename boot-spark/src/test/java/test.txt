@@ -1,0 +1,415 @@
+一个有情怀的程序猿  Spark  正文
+Spring Boot集成Spark 
+woter  woter 发布于 2018/07/10 17:05 字数 936 阅读 8973 收藏 16 点赞 0  评论 4
+Apache SparkSpringYMLSpring Boot
+同样是后端开发，年薪50万和年薪20万的差距在哪里>>> 
+
+Spark单机运行时，都是跑Main方法，那如何集成到Spring Boot实现http调用呢？
+
+接下实现一个从一个文本里排序出频次最高的前10名
+
+项目环境：
+JDK：1.8；
+
+Spark：2.2.0
+
+项目搭建：
+pom.xml 依赖：
+
+<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.5.3.RELEASE</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+		<scala.version>2.11</scala.version>
+		<spark.version>2.2.0</spark.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-core_${scala.version}</artifactId>
+			<version>${spark.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-streaming_${scala.version}</artifactId>
+			<version>${spark.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-sql_${scala.version}</artifactId>
+			<version>${spark.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+	</dependencies>
+配置类：
+
+@Configuration
+@ConfigurationProperties(prefix = "spark")
+public class SparkContextBean {
+
+    private String sparkHome = ".";
+
+    private String appName = "sparkTest";
+
+    private String master = "local";
+
+    @Bean
+    @ConditionalOnMissingBean(SparkConf.class)
+    public SparkConf sparkConf() throws Exception {
+	   SparkConf conf = new SparkConf().setAppName(appName).setMaster(master);
+	   return conf;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(JavaSparkContext.class)
+    public JavaSparkContext javaSparkContext() throws Exception {
+	   return new JavaSparkContext(sparkConf());
+    }
+
+    public String getSparkHome() {
+	  return sparkHome;
+    }
+
+    public void setSparkHome(String sparkHome) {
+	   this.sparkHome = sparkHome;
+    }
+
+    public String getAppName() {
+	   return appName;
+    }
+
+    public void setAppName(String appName) {
+	   this.appName = appName;
+    }
+
+    public String getMaster() {
+	   return master;
+    }
+
+    public void setMaster(String master) {
+	   this.master = master;
+    }
+}
+实现类：
+
+@Service
+public class SparkTestService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(SparkTestService.class);
+    
+    private static final Pattern SPACE = Pattern.compile(" ");
+
+    @Autowired
+    private JavaSparkContext sc;
+    
+    
+
+    public Map<String, Object> calculateTopTen() {
+
+	   Map<String, Object> result = new HashMap<String, Object>();
+	   JavaRDD<String> lines = sc.textFile("src/test/java/test.txt").cache();
+
+	   System.out.println();
+	   System.out.println("-------------------------------------------------------");
+	   System.out.println(lines.count());
+
+	   JavaRDD<String> words = lines.flatMap(str -> Arrays.asList(SPACE.split(str)).iterator());
+
+	   JavaPairRDD<String, Integer> ones = words.mapToPair(str -> new Tuple2<String, Integer>(str, 1));
+
+	   JavaPairRDD<String, Integer> counts = ones.reduceByKey((Integer i1, Integer i2) -> (i1 + i2));
+
+	   JavaPairRDD<Integer, String> temp = counts.mapToPair(tuple -> new Tuple2<Integer, String>(tuple._2, tuple._1));
+
+	   JavaPairRDD<String, Integer> sorted = temp.sortByKey(false).mapToPair(tuple -> new Tuple2<String, Integer>(tuple._2, tuple._1));
+
+	   System.out.println();
+	   System.out.println("-------------------------------------------------------");
+	   System.out.println(sorted.count());
+	
+	   //List<Tuple2<String, Integer>> output = sorted.collect();
+	
+	   //List<Tuple2<String, Integer>> output = sorted.take(10);
+	
+	   List<Tuple2<String, Integer>> output = sorted.top(10);
+	
+	   for (Tuple2<String, Integer> tuple : output) {
+	       result.put(tuple._1(), tuple._2());
+	   }
+
+	   return result;
+    }
+    
+    /**
+     * 练习demo，熟悉其中API
+     */
+    public void sparkExerciseDemo() {
+	   List<Integer> data = Lists.newArrayList(1,2,3,4,5,6);
+	   JavaRDD<Integer> rdd01 = sc.parallelize(data);
+	   rdd01 = rdd01.map(num ->{
+	      return num * num; 
+	   });
+	   //data map :1,4,9,16,25,36
+	   logger.info("data map :{}",Joiner.on(",").skipNulls().join(rdd01.collect()).toString());
+	
+	   rdd01 = rdd01.filter(x -> x < 6);
+	
+	   //data filter :1,4
+	   logger.info("data filter :{}",Joiner.on(",").skipNulls().join(rdd01.collect()).toString());
+	
+	   rdd01 = rdd01.flatMap( x ->{
+	      Integer[] test = {x,x+1,x+2};
+	      return Arrays.asList(test).iterator();
+	   });
+	
+	   //flatMap :1,2,3,4,5,6
+	   logger.info("flatMap :{}",Joiner.on(",").skipNulls().join(rdd01.collect()).toString());
+	
+	   JavaRDD<Integer> unionRdd = sc.parallelize(data);
+	
+	   rdd01 = rdd01.union(unionRdd);
+	
+	   //union :1,2,3,4,5,6,1,2,3,4,5,6
+	   logger.info("union :{}",Joiner.on(",").skipNulls().join(rdd01.collect()).toString());
+	
+	   List<Integer> result = Lists.newArrayList();
+	   result.add(rdd01.reduce((Integer v1,Integer v2) -> {
+	       return v1+v2;
+	   }));
+	
+	    //reduce :42
+	   logger.info("reduce :{}",Joiner.on(",").skipNulls().join(result).toString());
+	   result.forEach(System.out::print);
+	
+	   JavaPairRDD<Integer,Iterable<Integer>> groupRdd  = rdd01.groupBy(x -> {
+	       logger.info("======grouby========：{}",x);
+	       if (x > 10) return 0;
+	       else  return 1;
+	   });
+	
+	   List<Tuple2<Integer,Iterable<Integer>>> resul = groupRdd.collect();
+	
+	   //group by  key:1 value:1,2,3,4,5,6,1,2,3,4,5,6
+	   resul.forEach(x -> {
+	        logger.info("group by  key:{} value:{}",x._1,Joiner.on(",").skipNulls().join(x._2).toString());
+	   });
+	
+    }
+    
+    /**
+     * spark streaming 练习
+     */
+    public void sparkStreaming() throws InterruptedException {
+	   JavaStreamingContext jsc = new JavaStreamingContext(sc,Durations.seconds(10));//批间隔时间
+	   JavaReceiverInputDStream<String> lines = jsc.receiverStream(new CustomReceiver(StorageLevel.MEMORY_AND_DISK_2()));
+	   JavaDStream<Long> count =  lines.count();
+	   count = count.map(x -> {
+	       logger.info("这次批一共多少条数据：{}",x);
+	      return x; 
+	   });
+	   count.print();
+	   jsc.start();
+	   jsc.awaitTermination();
+	   jsc.stop();
+    }
+
+}
+
+
+/**
+ * 自定义接收streaming类
+ */
+public class CustomReceiver extends Receiver<String>{
+    
+    private static Logger logger = LoggerFactory.getLogger(CustomReceiver.class);
+    
+    
+    /**
+     *  
+     * @author	hz15041240 
+     * @date	2018年1月18日 下午4:37:22
+     * @version     
+     */ 
+    private static final long serialVersionUID = 5817531198342629801L;
+    
+    public CustomReceiver(StorageLevel storageLevel) {
+	  super(storageLevel);
+    }
+    
+    @Override
+    public void onStart() {
+	   new Thread(this::doStart).start();
+	   logger.info("开始启动Receiver...");
+	   //doStart();
+    }
+    
+    public void doStart() {
+	   while(!isStopped()) {
+	       int value = RandomUtils.nextInt(100);
+	       if(value <20) {
+		      try {
+		          Thread.sleep(1000);
+		      }catch (Exception e) {
+		          logger.error("sleep exception",e);
+		          restart("sleep exception", e);
+		      }
+	       }
+	       store(String.valueOf(value));
+	   }
+    }
+    
+    
+    @Override
+    public void onStop() {
+	   logger.info("即将停止Receiver...");
+    }
+
+}
+
+
+@RestController
+public class DemoController {
+
+	@Autowired
+	private SparkTestService sparkTestService;
+	
+	@RequestMapping("/demo/top10")
+	public Map<String, Object> calculateTopTen() {
+		return sparkTestService.calculateTopTen();
+	}
+	
+	@RequestMapping("/demo/exercise")
+	public void exercise() {
+		sparkTestService.sparkExerciseDemo();
+	}
+
+	@RequestMapping("/demo/stream")
+	public void streamingDemo() throws InterruptedException {
+		sparkTestService.sparkStreaming();
+	}
+}
+
+application.yml：
+
+server:
+  port: 8054
+
+spark:  
+  spark-home: .
+  app-name: sparkTest
+  master: local[4]
+在项目的 src/test/java 目录下新建一个test.txt文件，立面随便一堆随机的字符就可以了。
+
+启动项目，访问：http://localhost:8054/demo/top10 就能得到前10频率词汇了。
+
+
+ 
+© 著作权归作者所有
+
+打印 举报
+上一篇：
+JAVA关系表达式解析微引擎
+下一篇：
+Spring Cloud Config集成SVN实践
+woter
+woter粉丝 56 博文 114 码字总数 61479 作品 0 深圳  技术主管  
+评论(4)
+blackfoxMa
+blackfoxMa 07/23 11:09
+这是是local方法，提交spark集群是否可以呢？
+ 举报
+zb1480824687144 04/11 18:31
+引用来自“zb1480824687144”的评论
+您好,我目前有这方面的工作,您可以给我简单说一下通过java控制spark集群读取mysql数据流程吗.谢谢
+您好,您研究的怎么样了
+ 举报
+zb1480824687144 04/11 18:31
+您好,我目前有这方面的工作,您可以给我简单说一下通过java控制spark集群读取mysql数据流程吗.谢谢
+ 举报
+许小草i
+许小草i 03/29 08:12
+你好，请问下能把完整的项目发给我吗？我对spring-boot的架构不太清楚，application类启动报错了，还有就是怎么运行，提交到spark集群运行还是提交到tomcat运行？
+ 举报
+Spring for Apache Hadoop 2.5.0.RC1 发布
+Spring for Apache Hadoop 2.5.0.RC1 发布了。2.5 版本主要是一个错误修复和版本升级发布。 主要更新如下： General Add build support for HDP 2.6 [SHDP-583] Update to CDH version 5.10 ...
+
+局长 2017/06/24  945  1
+Spring boot与habse、hive、spark整合demo
+Spring boot与habse、hive、spark整合demo 下载地址：https://github.com/lwenhaoCN/hadoop 该demo包含hbase hive spark测试使用的demo 为测试HBase，包含删除表、创建表、插入数据、根据row...
+
+小儿 03/21  570  0
+Spring for Apache Hadoop 2.5.0 GA 版本发布
+Spring for Apache Hadoop 2.5.0 GA 版本发布，包括 bug 修复和版本升级，具体内容可查阅发行主页。 Spring for Apache Hadoop 提供了 Spring 框架用于创建和运行 Hadoop MapReduce、Hive 和...
+
+王练 2017/07/07  845  6
+spark+scala+spring整合提高搬砖效率
+0.背景 为什么会想到把这三个整合在一起? 当然是工作中遇到不舒服的地方。 最近数据的需求特别多，有时候自己定位问题也经常要跑数据，通常就是spark+scala的常规画风。虽然是提同一个jar包，...
+
+火力全開 2018/08/10  183  1
+大数据处理为何选择Spark，而不是Hadoop
+一.基础知识 1.Spark Spark是一个用来实现快速而通用的集群计算的平台。 在速度方面，Spark扩展了广泛使用的MapReduce计算模型，而且高效地支持更多计算模式，包括交互式查询和流处理。 Spar...
+
+微笑向暖wx 2018/11/25  43  0
+
+ 
+14_float_left_people14_float_left_close
+OSCHINA 社区
+关于我们
+联系我们
+合作伙伴
+Open API
+在线工具
+码云 Gitee.com
+企业研发管理
+CopyCat-代码克隆检测
+实用在线工具
+微信公众号
+微信公众号
+OSCHINA APP
+聚合全网技术文章，根据你的阅读喜好进行个性推荐
+
+©OSCHINA(OSChina.NET) 工信部 开源软件推进联盟 指定官方社区深圳市奥思网络科技有限公司版权所有 粤ICP备12009483号-3
+返回顶部
+顶部

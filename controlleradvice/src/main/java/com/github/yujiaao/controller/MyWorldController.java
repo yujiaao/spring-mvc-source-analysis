@@ -49,6 +49,13 @@ public class MyWorldController {
 		return "success";
 	}
 
+	@GetMapping("null")
+	public String throwNull(){
+		User u=null;
+		u.getDob();
+		return "success";
+	}
+
 
 
 }

@@ -40,7 +40,7 @@ org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController
 用户名输入exception,触发后端报错，可以比较`提交`和`Json 提交`返回数据的差别。
 
 ## 问题2：如何将json改为jsonp支持跨域？
-可以通过ResponseBodyAdvice我们可以很方便的将json数据改成jsonp进行返回。读者可自行尝试。
+可以通过 ResponseBodyAdvice 我们可以很方便的将json数据改成jsonp进行返回。读者可自行尝试。
 
 ## 问题3：相较Controller, ControllerAdvice执行的时机是什么？
 InitBinder 与 ModelAttribute 在Controller方法之前执行，ExceptionHandler在发生异常时执行。

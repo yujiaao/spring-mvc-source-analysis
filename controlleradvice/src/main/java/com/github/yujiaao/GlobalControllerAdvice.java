@@ -45,4 +45,15 @@ public class GlobalControllerAdvice {
         return "forward:error";
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public String myRuntimeError(Exception exception, HttpServletRequest request) {
+        request.setAttribute("exception", exception);
+
+        exception.printStackTrace();
+
+        request.setAttribute("javax.servlet.error.status_code", 500);
+
+        return "forward:error";
+    }
+
 }

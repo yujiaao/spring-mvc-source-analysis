@@ -2,7 +2,6 @@ package com.github.yujiaao.reloading.config;
 
 import com.github.yujiaao.reloading.filter.GlobalFilter;
 import com.github.yujiaao.reloading.listener.ContextListener;
-import com.github.yujiaao.reloading.listener.WebServerStartedListener;
 import org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -35,10 +34,6 @@ public class AppConfig {
     }
 
 
-    @Bean
-    public ApplicationListener<ServletWebServerInitializedEvent> applicationListener(){
-	    return new WebServerStartedListener();
-    }
 
     @Bean
     public ServletContextListener servletContextListener(){
